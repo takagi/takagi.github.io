@@ -65,5 +65,129 @@
 </description>
     </item>
     
+    <item>
+      <title>SBCL (Steel Bank Common Lisp) のビルドプロセス</title>
+      <link>http://takagi.github.io/2014/05/30/sbcl-build-process/</link>
+      <pubDate>Fri, 30 May 2014 00:00:00 +0900</pubDate>
+      
+      <guid>http://takagi.github.io/2014/05/30/sbcl-build-process/</guid>
+      <description>
+
+&lt;p&gt;Common Lisp の実装の１つである SBCL (Steel Bank Common Lisp) のビルドプロセスは、Allegro Common Lisp や LispWorks といった、イメージベースでそれ自身の上でのみビルド可能な Common Lisp 実装とは異なり、SBCL 以外の Common Lisp 実装の上でもビルドできます。それを実現するために、SBCL のビルドプロセスでは、様々なテクニックが使われています。&lt;/p&gt;
+
+&lt;p&gt;このエントリでは、SBCL のビルドプロセスを順を追って説明します。&lt;/p&gt;
+
+&lt;h2 id=&#34;host-1-ビルドステージ:eed224310d4514a746715be452bdfbd0&#34;&gt;host-1 ビルドステージ&lt;/h2&gt;
+
+&lt;p&gt;まず、ホスト上にクロスコンパイラを読み込みます。SBCL のソースコードをホストコンパイラでコンパイルしロードすることで、ホスト上にクロスコンパイラを展開します。&lt;/p&gt;
+
+&lt;p&gt;続いて、後のステージのための前処理として、sb!fasl:genesis の読み込みと、C ヘッダファイルの出力を行います。sb!fasl:genesis は、genesis-2 ビルドステージで、&amp;rsquo;cold core&amp;rsquo; を生成するために使われます。C ヘッダファイルは、続く target-1 ビルドステージで、SBCL の実行形式を構築するのに使われます。&lt;/p&gt;
+
+&lt;h2 id=&#34;target-1-ビルドステージ:eed224310d4514a746715be452bdfbd0&#34;&gt;target-1 ビルドステージ&lt;/h2&gt;
+
+&lt;p&gt;target-1 ビルドステージでは、大きく２つの処理が行われます。１つは、SBCL 実行形式の構築です。host-1 ビルドステージで生成された C ヘッダファイルと、その他の C ソースファイルおよびアセンブリファイルから、SBCL の実行形式を構築します。ただし、この実行形式は、この時点ではまだ動作しません。OS サービスへのインターフェイスやガベージコレクタを提供するものの、次ステージ以降で生成されるターゲットメモリイメージを含まないためです。&lt;/p&gt;
+
+&lt;p&gt;もう１つの処理は、ターゲットの一部として使用される Lisp ソースコードの生成です。この Lisp ソースコードは、小さな C プログラムをコンパイルおよび実行することで生成され、システム依存の定数と型に関する情報を提供します。&lt;/p&gt;
+
+&lt;h2 id=&#34;host-2-ビルドステージ:eed224310d4514a746715be452bdfbd0&#34;&gt;host-2 ビルドステージ&lt;/h2&gt;
+
+&lt;p&gt;このステージでは、SBCL 用のオブジェクトファイル (FASL ファイル) が生成されます。オブジェクトファイルは、クロスコンパイラ版の compile-file を用いて、SBCL ソースコードを再度コンパイルすることで得られます。このとき、SBCL ソースコードの他に、host-1 ビルドステージで生成した Lisp ソースコードを併せて用いることで、クロスコンパイラ上の定数定義を、システム環境に応じたものに更新します。&lt;/p&gt;
+
+&lt;h2 id=&#34;genesis-2-ビルドステージ:eed224310d4514a746715be452bdfbd0&#34;&gt;genesis-2 ビルドステージ&lt;/h2&gt;
+
+&lt;p&gt;続いて、genesis-2 ビルドステージに入ります。ここでは、host-1 で読み込んだ sb!vm:genesis を用いて、FASL ファイルのロードとメモリイメージの保存をシミュレートします。sb!vm:genesis が必要となる理由は、ホストコンパイラの load 関数では、SBCL の FASL 形式をロードできず、また、SBCL のターゲットイメージがまだ存在しないことからその load 関数を使うこともできないためです。&lt;/p&gt;
+
+&lt;p&gt;ここで行う処理は、次のように進みます。まず、特定の順序で擬似的に FASL ファイルをロードし、メモリイメージを展開します。次に、ターゲットのメモリ領域をバイト配列とみなし、FASL ファイルをロードしたときに起こるであろう処理をシミュレートします。この方法で実行できない処理は、ターゲットイメージの初期化関数が実行されるまで遅延されます。すべての FASL ファイルがこの方法で処理された後、メモリ領域を SBCL 実行形式が期待する形式でファイルに保存します。これで &amp;lsquo;cold core&amp;rsquo; が生成されました。&lt;/p&gt;
+
+&lt;p&gt;最後に、&amp;rsquo;cold core&amp;rsquo; をメモリイメージとして、SBCL 実行形式を起動します (&amp;lsquo;cold init&amp;rsquo;)。遅延されていたトップレベル・フォームの処理などは、このタイミングで実行されます。&amp;rsquo;cold init&amp;rsquo;は、助けになる Lisp デバッガが存在しないことから最もデバッグしづらいため、現在の SBCL のビルドプロセスにおいて、もっとも脆弱な箇所といえます。&lt;/p&gt;
+
+&lt;h2 id=&#34;target-2-ビルドステージ:eed224310d4514a746715be452bdfbd0&#34;&gt;target-2 ビルドステージ&lt;/h2&gt;
+
+&lt;p&gt;SBCL のビルドプロセスの最終ステージが、target-2 ビルドステージです。まず、パッケージを最終的な名前に変更し、sb! プレフィックスを、sb- プレフィックスとします。次に、SBCL に特殊化されたバージョンの Portable Common Loops (PCL) をコンパイルし、ロードします。最後に、そうしてできた新しいメモリイメージを、output/sbcl.core として保存します。&lt;/p&gt;
+
+&lt;p&gt;これで、ビルドプロセスが完了しました。&lt;/p&gt;
+
+&lt;h2 id=&#34;まとめ:eed224310d4514a746715be452bdfbd0&#34;&gt;まとめ&lt;/h2&gt;
+
+&lt;p&gt;このエントリでは、SBCL のビルドプロセスを順を追って説明しました。SBCL のアプローチにもメリット・デメリットはありますが、このような仕組みでセルフ・ブートストラッピングを実現しているというのは、興味深いところです。&lt;/p&gt;
+
+&lt;h2 id=&#34;参考:eed224310d4514a746715be452bdfbd0&#34;&gt;参考&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.doc.gold.ac.uk/~mas01cr/papers/s32008/sbcl.pdf&#34;&gt;SBCL - a Sanely-Bootstrappable Common Lisp(PDF)&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>cl-coroutine: a coroutine library for Common Lisp</title>
+      <link>http://takagi.github.io/2014/05/30/cl-coroutine/</link>
+      <pubDate>Fri, 30 May 2014 00:00:00 +0900</pubDate>
+      
+      <guid>http://takagi.github.io/2014/05/30/cl-coroutine/</guid>
+      <description>
+
+&lt;p&gt;CL-COROUTINE is a coroutine library for Common Lisp. It uses CL-CONT continuations library in its implementation. Here I show an example to use it. For detail, please see the project repository below.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/takagi/cl-coroutine&#34;&gt;cl-coroutine: a coroutine library for Common Lisp&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;example:a4fad3ea3f2fb087b411806e2a4fd3c8&#34;&gt;Example&lt;/h2&gt;
+
+&lt;p&gt;Here shows an example how to use cl-coroutine.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;;; define a coroutine using DEFCOROUTINE macro 
+(defcoroutine example (whom) 
+  (format t &amp;quot;First greeting to: ~A~%&amp;quot; whom) 
+  (yield 1) 
+  (format t &amp;quot;Second greeting to: ~A~%&amp;quot; whom) 
+  (yield 2) 
+  (format t &amp;quot;Third greeting to: ~A~%&amp;quot; whom) 
+  (coexit 3) 
+  (format t &amp;quot;No greeting to: ~A~%&amp;quot; whom) 
+  (yield 4)) 
+=&amp;gt; EXAMPLE 
+
+;; make a coroutine object 
+(setf coroutine (make-coroutine &#39;example)) 
+=&amp;gt; a coroutine object 
+
+;; funcall it 
+(funcall coroutine &amp;quot;Smith&amp;quot;) 
+&amp;gt;&amp;gt; First greeting to: Smith 
+=&amp;gt; 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I want your feedbacks. Thanks.&lt;/p&gt;
+
+&lt;h2 id=&#34;project-repository:a4fad3ea3f2fb087b411806e2a4fd3c8&#34;&gt;Project repository&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/takagi/cl-coroutine&#34;&gt;cl-coroutine: a coroutine library for Common Lisp&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>cl-reexport: symbol reexporting library for Common Lisp</title>
+      <link>http://takagi.github.io/2014/05/20/cl-reexport/</link>
+      <pubDate>Tue, 20 May 2014 00:00:00 +0900</pubDate>
+      
+      <guid>http://takagi.github.io/2014/05/20/cl-reexport/</guid>
+      <description>&lt;p&gt;CL-REEXPORT is a library to reexport symbols which are external symbols in other packages. It is valuable when virtually construct package hierarchy on Common Lisp standard&amp;rsquo;s flat package system.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/takagi/cl-reexport&#34;&gt;cl-reexport: symbol reexporting library for Common Lisp&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;ASDF 3 has similar one-package-per-file facility. The structural difference between them is:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Virtual hierarchy packages in this context have one system definition and several packages constituting a hierarchical structure.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;ASDF 3&amp;rsquo;s one-package-per-file style has hierarchical system definitions and hierarchical packages, which are corresponding each other.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Since ASDF 3&amp;rsquo;s one-package-per-file style has not been de facto standard yet, there may be some cases where cl-reexport is useful.&lt;/p&gt;
+
+&lt;p&gt;Currently requesting to Quicklisp to register.&lt;/p&gt;
+
+&lt;p&gt;I want your feedback.&lt;/p&gt;
+</description>
+    </item>
+    
   </channel>
 </rss>

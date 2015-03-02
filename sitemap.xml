@@ -22,4 +22,19 @@
     <lastmod>2014-12-01T00:00:00+09:00</lastmod>
   </url>
   
+  <url>
+    <loc>http://takagi.github.io/2014/05/30/cl-coroutine/</loc>
+    <lastmod>2014-05-30T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://takagi.github.io/2014/05/30/sbcl-build-process/</loc>
+    <lastmod>2014-05-30T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://takagi.github.io/2014/05/20/cl-reexport/</loc>
+    <lastmod>2014-05-20T00:00:00+09:00</lastmod>
+  </url>
+  
 </urlset>

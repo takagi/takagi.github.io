@@ -5,10 +5,10 @@
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 
-        <title>about &middot; Masayuki Takagi&#39;s Blog</title>
+        <title>cl-reexport: symbol reexporting library for Common Lisp &middot; Masayuki Takagi&#39;s Blog</title>
         <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600' type='text/css'>
-        <link rel="stylesheet" href="http://localhost:60536//libraries/normalize.3.0.1.css" />
-        <link rel="stylesheet" href="http://localhost:60536//css/liquorice.css" />
+        <link rel="stylesheet" href="http://takagi.github.io//libraries/normalize.3.0.1.css" />
+        <link rel="stylesheet" href="http://takagi.github.io//css/liquorice.css" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-144-precomposed.png" sizes="144x144" />
         <link rel="alternate" href="" type="application/rss+xml" title="Masayuki Takagi&#39;s Blog" />
@@ -20,7 +20,7 @@
         <div class="row">
             <div class="sixteen columns">
                 <div class="li-brand li-left">
-                <a href="http://localhost:60536/">Masayuki Takagi&#39;s Blog</a></div>
+                <a href="http://takagi.github.io/">Masayuki Takagi&#39;s Blog</a></div>
                 <div class="li-menu li-right">
                     <span class="li-menu-icon" onclick="javascript:toggle('menu');">&#9776;</span>
                     <ul id="menu2" class="li-menu-items">
@@ -49,21 +49,33 @@
             <div class="sixteen columns">
                 <article class="li-article">
                     <header class="li-article-header">
-                        <h1 class="li-article-title">about</h1>
+                        <h1 class="li-article-title">cl-reexport: symbol reexporting library for Common Lisp</h1>
                         <span class="li-article-taxonomies">
                             
 
                             
                         </span>
                         
-                        <time class="li-article-date">Sunday, March 1, 2015</time>
+                        <time class="li-article-date">Tuesday, May 20, 2014</time>
                     </header>
                     <section>
-                        
+                        <p>CL-REEXPORT is a library to reexport symbols which are external symbols in other packages. It is valuable when virtually construct package hierarchy on Common Lisp standard&rsquo;s flat package system.</p>
 
-<h2 id="a-headline:6083a88ee3411b0d17ce02d738f69d47">A headline</h2>
+<p><a href="https://github.com/takagi/cl-reexport">cl-reexport: symbol reexporting library for Common Lisp</a></p>
 
-<p>Some Contents</p>
+<p>ASDF 3 has similar one-package-per-file facility. The structural difference between them is:</p>
+
+<ul>
+<li><p>Virtual hierarchy packages in this context have one system definition and several packages constituting a hierarchical structure.</p></li>
+
+<li><p>ASDF 3&rsquo;s one-package-per-file style has hierarchical system definitions and hierarchical packages, which are corresponding each other.</p></li>
+</ul>
+
+<p>Since ASDF 3&rsquo;s one-package-per-file style has not been de facto standard yet, there may be some cases where cl-reexport is useful.</p>
+
+<p>Currently requesting to Quicklisp to register.</p>
+
+<p>I want your feedback.</p>
 
                     </section>
                 </article>
@@ -82,15 +94,14 @@
                 <div class="li-pagination-previous">
                     
                         Later article<br />
-                        <a href="http://localhost:60536/2015/03/01/pic/"> PIC: A native compiler for 8-bit PIC micro controllers</a>
+                        <a href="http://takagi.github.io/2014/05/30/sbcl-build-process/"> SBCL (Steel Bank Common Lisp) のビルドプロセス</a>
                     
                 </div>
             </div>
             <div class="eight columns">
                 <div class="li-pagination-next">
                     
-                        Older article<br />
-                        <a href="http://localhost:60536/2014/12/01/swank/"> Swank RPC プロトコル</a>
+                        &nbsp;
                     
                 </div>
             </div>
@@ -133,9 +144,6 @@
         })();
     -->
     </script>
-    <script>document.write('<script src="http://'
-        + (location.host || 'localhost').split(':')[0]
-		+ ':60536/livereload.js?mindelay=10"></'
-        + 'script>')</script></body>
+    </body>
 </html>
 
