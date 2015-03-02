@@ -5,7 +5,7 @@
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 
-        <title>about &middot; Masayuki Takagi&#39;s Blog</title>
+        <title>Compiling the Particle-based Simulation Description Language &middot; Masayuki Takagi&#39;s Blog</title>
         <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600' type='text/css'>
         <link rel="stylesheet" href="http://localhost:1313//libraries/normalize.3.0.1.css" />
         <link rel="stylesheet" href="http://localhost:1313//css/liquorice.css" />
@@ -49,21 +49,96 @@
             <div class="sixteen columns">
                 <article class="li-article">
                     <header class="li-article-header">
-                        <h1 class="li-article-title">about</h1>
+                        <h1 class="li-article-title">Compiling the Particle-based Simulation Description Language</h1>
                         <span class="li-article-taxonomies">
                             
 
                             
                         </span>
                         
-                        <time class="li-article-date">Sunday, March 1, 2015</time>
+                        <time class="li-article-date">Wednesday, December 28, 2011</time>
                     </header>
                     <section>
                         
 
-<h2 id="a-headline:6083a88ee3411b0d17ce02d738f69d47">A headline</h2>
+<p>On <a href="http://kamonama.blogspot.com/2011/12/n-body-simulation-using-particle.html">the former entry</a>, I described simple N-Body simulation in the Particle-based Simulation Description Language as a embedded DSL and executed it with interpreter. In this entry, I introduce compiling and demonstrate it.</p>
 
-<p>Some Contents</p>
+<h2 id="implementation:841f6543f07a31e6bf93b67c2b289386">Implementation</h2>
+
+<p>The Particle-based Simulation Description Language is compiled to Haskell using Template Haskell, a GHC extension to Haskell that adds compile-time metaprogramming facilities.</p>
+
+<p>With this transformation, a code corresponding to the N-Body simulation code written in plain Haskell on <a href="http://kamonama.blogspot.com/2011/12/n-body-simulation-using-particle.html">the former entry</a> is produced, then it is compiled with GHC Haskell compiler.</p>
+
+<p>In other words, the host language is the Particle-based Simulation Description Language and the target language is Haskell, though there is no clear line between the host and target languages because it is a embedded DSL.</p>
+
+<h2 id="codes:841f6543f07a31e6bf93b67c2b289386">Codes</h2>
+
+<p><a href="https://github.com/takagi/SimulationDSL">Here</a> the codes are, with the interpreter introduced on <a href="http://kamonama.blogspot.com/2011/12/n-body-simulation-using-particle.html">the former entry</a> together, arranged as a module.</p>
+
+<p>The structure of the module is as below:</p>
+
+<pre><code>- Examples/
+- SimulationDSL/
+  - SimulationDSL.hs
+  - SimulationDSL/
+    - Compiler/
+    - Data/
+    - Interpreter/
+    - Language/
+    - Test/
+</code></pre>
+
+<h2 id="execution:841f6543f07a31e6bf93b67c2b289386">Execution</h2>
+
+<p>To execute, compile CompilerRun.hs in Examples directory and run the output file as below:</p>
+
+<pre><code>$ cd Examples
+$ ghc -i../SimulationDSL --make -O2 CompilerRun.hs
+$ ./CompilerRun
+</code></pre>
+
+<h2 id="performance:841f6543f07a31e6bf93b67c2b289386">Performance</h2>
+
+<p>Comparing performance on three codes:</p>
+
+<ul>
+<li>with compiler - CompilerRun</li>
+<li>in plain Haskell - NBody</li>
+<li>with interpreter - InterpreterRun</li>
+</ul>
+
+<p>The performance:</p>
+
+<pre><code>$ time ./CompilerRun &gt; /dev/null
+
+real 0m0.949s
+user 0m0.927s
+sys 0m0.011s
+
+$ time ./NBody &gt; /dev/null
+
+real 0m0.972s
+user 0m0.950s
+sys 0m0.011s
+
+$ time ./InterpreterRun &gt; /dev/null
+real 0m2.932s
+user 0m2.906s
+sys 0m0.022s
+</code></pre>
+
+<p>As a chart:</p>
+
+<p><img src="https://docs.google.com/spreadsheet/oimg?key=0AuAdJAcp4Uw2dHFGZ0VkTWNpMkZXZFhsVXlQQUxWVHc&amp;oid=1&amp;zx=r2qdztnbcle0" alt="Compiler vs. plain Haskell vs. Interpreter" />
+</p>
+
+<p>As intended, the same performance to the code in plain Haskell is given with compiler, which is 2x-3x faster than with interpreter.</p>
+
+<h2 id="conclusion:841f6543f07a31e6bf93b67c2b289386">Conclusion</h2>
+
+<p>In this entry, I introduced compiling the Particle-based Simulation Description Language to Haskell and showed improvement in performance of simple N-Body simulation.</p>
+
+<p>While this time I chose Haskell as the target language for this embedded DSL, it is also possible to compile it to C adapting OpenMP or CUDA with parallel computation.</p>
 
                     </section>
                 </article>
@@ -82,15 +157,14 @@
                 <div class="li-pagination-previous">
                     
                         Later article<br />
-                        <a href="http://localhost:1313/2015/03/01/pic/"> PIC: A native compiler for 8-bit PIC micro controllers</a>
+                        <a href="http://localhost:1313/2014/05/20/cl-reexport/"> cl-reexport: symbol reexporting library for Common Lisp</a>
                     
                 </div>
             </div>
             <div class="eight columns">
                 <div class="li-pagination-next">
                     
-                        Older article<br />
-                        <a href="http://localhost:1313/2014/12/01/swank/"> Swank RPC プロトコル</a>
+                        &nbsp;
                     
                 </div>
             </div>
