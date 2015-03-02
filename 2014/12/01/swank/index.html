@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+    <head>
+        
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+
+        <title>Swank RPC プロトコル &middot; Masayuki Takagi&#39;s Blog</title>
+        <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600' type='text/css'>
+        <link rel="stylesheet" href="http://takagi.github.io//libraries/normalize.3.0.1.css" />
+        <link rel="stylesheet" href="http://takagi.github.io//css/liquorice.css" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-144-precomposed.png" sizes="144x144" />
+        <link rel="alternate" href="" type="application/rss+xml" title="Masayuki Takagi&#39;s Blog" />
+    </head>
+    <body class="li-body">
+
+<header class="li-page-header">
+    <div class="container">
+        <div class="row">
+            <div class="sixteen columns">
+                <div class="li-brand li-left">
+                <a href="http://takagi.github.io/">Masayuki Takagi&#39;s Blog</a></div>
+                <div class="li-menu li-right">
+                    <span class="li-menu-icon" onclick="javascript:toggle('menu');">&#9776;</span>
+                    <ul id="menu2" class="li-menu-items">
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="sixteen columns">
+                <ul id="menu" class="li-menu-items li-menu-mobile">
+                    
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+    <div class="container">
+        <div class="row">
+            <div class="sixteen columns">
+                <article class="li-article">
+                    <header class="li-article-header">
+                        <h1 class="li-article-title">Swank RPC プロトコル</h1>
+                        <span class="li-article-taxonomies">
+                            
+
+                            
+                        </span>
+                        
+                        <time class="li-article-date">Monday, December 1, 2014</time>
+                    </header>
+                    <section>
+                        
+
+<p>Swank RPC プロトコルは、SLIME と Swank との間で用いられる、テキストベースの非同期通信プロトコルです。SLIME は、Common Lisp でアプリケーションを開発するための Emacs モードで、IDE（統合開発環境）と呼べるほど強力な機能を備えています。SLIME には、Swank と呼ばれるバックエンドがあります。Swank は、Common Lisp プロセスにロードされ、ソケットを経由して SLIME と通信します。このとき使用されるのが、Swank RPC プロトコルです。</p>
+
+<p>このエントリでは、Swank RPC プロトコルについて簡単に説明します。</p>
+
+<h2 id="swank-rpc-プロトコルの概観:74eb3724ebc339776f23f7f3bbd76a2d">Swank RPC プロトコルの概観</h2>
+
+<p>Swank RPC プロトコルは、6文字の16進数文字列とそれに続くS式、終端の改行文字で構成されます。</p>
+
+<pre><code>000016(:return (:ok nil) 1)\n
+</code></pre>
+
+<p>先頭の16進数文字列は、続くS式の長さ（最後の改行文字を含む）を表します。S式は、SLIME や Swank によって読み込まれます。S式の最初の要素はメッセージの種類を表すキーワードで、残りの要素がその引数です。</p>
+
+<p>メッセージには、以下のような種類があります。</p>
+
+<ul>
+<li><code>:emacs-rex</code></li>
+<li><code>:return</code></li>
+<li><code>:indentation-update</code></li>
+<li><code>:new-features</code></li>
+</ul>
+
+<h2 id="swank-rpc-プロトコルによるs式の評価:74eb3724ebc339776f23f7f3bbd76a2d">Swank RPC プロトコルによるS式の評価</h2>
+
+<p>たとえば、(+ 3 4)というS式を Swank で評価するには、以下のメッセージを送信します。</p>
+
+<pre><code>00002c(:emacs-rex (+ 3 4) &quot;COMMON-LISP-USER&quot; t 1)\n
+</code></pre>
+
+<p>最初の6文字は続くS式の長さで、改行文字を含め44文字のため、16進数で2cとなります。</p>
+
+<p>メッセージの種類は <code>:emacs-rex</code>（Remote EXecute SEXP）で、第一引数が評価するS式、第二引数がそのときのカレントパッケージです。第三引数はS式の評価を行う Swank 側のスレッドを表し、第四引数は戻り値を受け取る継続を意味します。</p>
+
+<p>S式が評価されると、Swank からは以下のようなメッセージが返信されます。</p>
+
+<pre><code>000013(:return (:ok 7) 1)
+</code></pre>
+
+<p>最初の6文字は、送信されたメッセージと同様にS式の長さを表し、19文字のため、16進数で13となります。</p>
+
+<p>戻り値を表すメッセージは、<code>:return</code>です。評価に成功した場合、第一引数の最初の要素が<code>:ok</code>となり、二番目の要素に評価した結果の値が入ります。ここではその値は7です。第二引数は、送信されたメッセージの第四引数に含まれていた継続がそのまま返されます。</p>
+
+<h2 id="まとめ:74eb3724ebc339776f23f7f3bbd76a2d">まとめ</h2>
+
+<p>このように、Swank RPC プロトコルでは、S式で表現されたテキストベースのメッセージが相互にやりとりされます。SLIME と Swank のやり取りの様子は、Emacs の <em>slime-events</em> バッファでみることができます。</p>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div class="row li-author">
+    <div class="sixteen columns">
+        Written by <strong>Masayuki Takagi</strong>
+    </div>
+</div>
+
+
+        <div class="row li-pagination">
+            <div class="eight columns">
+                <div class="li-pagination-previous">
+                    
+                        Later article<br />
+                        <a href="http://takagi.github.io/2015/03/01/pic/"> PIC: A native compiler for 8-bit PIC micro controllers</a>
+                    
+                </div>
+            </div>
+            <div class="eight columns">
+                <div class="li-pagination-next">
+                    
+                        &nbsp;
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+<footer class="li-page-footer">
+    <div class="container">
+        <div class="row">
+            <div class="sixteen columns">
+                <div class="li-page-footer-legal">
+                    &copy; 2015. All rights reserved. 
+                </div>
+                <div class="li-page-footer-theme">
+                    <span class=""><a href="https://github.com/eliasson/liquorice/">liquorice</a> is a theme for <a href="http://hugo.spf13.com">hugo</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    <script type="text/javascript">
+    <!--
+    function toggle(id) {
+        var e = document.getElementById(id);
+        e.style.display == 'block' ? e.style.display = 'none' : e.style.display = 'block';
+    }
+    
+    </script>
+    <script type="text/javascript">
+    <!--
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', ""]);
+        _gaq.push(['_trackPageview']);
+
+        (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    -->
+    </script>
+    </body>
+</html>
+

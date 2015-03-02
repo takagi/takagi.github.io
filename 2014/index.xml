@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>2014s on Masayuki Takagi&#39;s Blog</title>
+    <link>http://takagi.github.io/2014/</link>
+    <description>Recent content in 2014s on Masayuki Takagi&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 01 Dec 2014 00:00:00 +0900</lastBuildDate>
+    <atom:link href="http://takagi.github.io/2014/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Swank RPC プロトコル</title>
+      <link>http://takagi.github.io/2014/12/01/swank/</link>
+      <pubDate>Mon, 01 Dec 2014 00:00:00 +0900</pubDate>
+      
+      <guid>http://takagi.github.io/2014/12/01/swank/</guid>
+      <description>
+
+&lt;p&gt;Swank RPC プロトコルは、SLIME と Swank との間で用いられる、テキストベースの非同期通信プロトコルです。SLIME は、Common Lisp でアプリケーションを開発するための Emacs モードで、IDE（統合開発環境）と呼べるほど強力な機能を備えています。SLIME には、Swank と呼ばれるバックエンドがあります。Swank は、Common Lisp プロセスにロードされ、ソケットを経由して SLIME と通信します。このとき使用されるのが、Swank RPC プロトコルです。&lt;/p&gt;
+
+&lt;p&gt;このエントリでは、Swank RPC プロトコルについて簡単に説明します。&lt;/p&gt;
+
+&lt;h2 id=&#34;swank-rpc-プロトコルの概観:74eb3724ebc339776f23f7f3bbd76a2d&#34;&gt;Swank RPC プロトコルの概観&lt;/h2&gt;
+
+&lt;p&gt;Swank RPC プロトコルは、6文字の16進数文字列とそれに続くS式、終端の改行文字で構成されます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;000016(:return (:ok nil) 1)\n
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;先頭の16進数文字列は、続くS式の長さ（最後の改行文字を含む）を表します。S式は、SLIME や Swank によって読み込まれます。S式の最初の要素はメッセージの種類を表すキーワードで、残りの要素がその引数です。&lt;/p&gt;
+
+&lt;p&gt;メッセージには、以下のような種類があります。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;:emacs-rex&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:return&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:indentation-update&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;:new-features&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;swank-rpc-プロトコルによるs式の評価:74eb3724ebc339776f23f7f3bbd76a2d&#34;&gt;Swank RPC プロトコルによるS式の評価&lt;/h2&gt;
+
+&lt;p&gt;たとえば、(+ 3 4)というS式を Swank で評価するには、以下のメッセージを送信します。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;00002c(:emacs-rex (+ 3 4) &amp;quot;COMMON-LISP-USER&amp;quot; t 1)\n
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最初の6文字は続くS式の長さで、改行文字を含め44文字のため、16進数で2cとなります。&lt;/p&gt;
+
+&lt;p&gt;メッセージの種類は &lt;code&gt;:emacs-rex&lt;/code&gt;（Remote EXecute SEXP）で、第一引数が評価するS式、第二引数がそのときのカレントパッケージです。第三引数はS式の評価を行う Swank 側のスレッドを表し、第四引数は戻り値を受け取る継続を意味します。&lt;/p&gt;
+
+&lt;p&gt;S式が評価されると、Swank からは以下のようなメッセージが返信されます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;000013(:return (:ok 7) 1)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最初の6文字は、送信されたメッセージと同様にS式の長さを表し、19文字のため、16進数で13となります。&lt;/p&gt;
+
+&lt;p&gt;戻り値を表すメッセージは、&lt;code&gt;:return&lt;/code&gt;です。評価に成功した場合、第一引数の最初の要素が&lt;code&gt;:ok&lt;/code&gt;となり、二番目の要素に評価した結果の値が入ります。ここではその値は7です。第二引数は、送信されたメッセージの第四引数に含まれていた継続がそのまま返されます。&lt;/p&gt;
+
+&lt;h2 id=&#34;まとめ:74eb3724ebc339776f23f7f3bbd76a2d&#34;&gt;まとめ&lt;/h2&gt;
+
+&lt;p&gt;このように、Swank RPC プロトコルでは、S式で表現されたテキストベースのメッセージが相互にやりとりされます。SLIME と Swank のやり取りの様子は、Emacs の &lt;em&gt;slime-events&lt;/em&gt; バッファでみることができます。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
